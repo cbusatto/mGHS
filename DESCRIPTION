@@ -1,0 +1,12 @@
+Package: mGHS
+Type: Package
+Title: Joint estimation of multiple graphical models
+Version: 1.0
+Date: 2022-12-06
+Author: Claudio Busatto
+Maintainer: Claudio Busatto <claudio.busatto2@gmail.com>
+Description: Full-bayesian generalization of the graphical horseshoe of Li et al. (2019) to the case of K similar groups. The choice of the prior distributions relies on the work of Peterson et al. (2020).
+License: GPL (>= 2)
+Imports: Rcpp (>= 1.0.9), RcppParallel (>= 5.1.5), RcppEigen
+LinkingTo: Rcpp, RcppParallel, RcppEigen, BH
+SystemRequirements: GNU make

@@ -1,0 +1,481 @@
+true_model = function(list_c) {
+  K = length(list_c)
+  p = ncol(list_c[[1]])
+  nn = p * (p - 1) * 0.5
+  true_model = matrix(0, nn, K)
+  for (j in 1:K) {
+    tmp = list_c[[j]][lower.tri(list_c[[j]])]
+    true_model[tmp != 0.0, j] = 1
+  }
+  
+  return(true_model)
+}
+
+get_AIC = function(lambda1, lambda2, Y, penalty) {
+  K = length(Y)
+  AIC = 0  
+  
+  jgl_res = JGL(Y = Y, penalty = penalty, lambda1 = lambda1, lambda2 = lambda2,
+                 return.whole.theta = TRUE)
+  theta = jgl_res$theta
+  
+  for (k in 1:K) {
+    # Get data for current sample group
+    cur_Y = Y[[k]]
+    n_k = nrow(cur_Y)
+    E_k = length(net.edges(theta)[[k]])
+    S = 1 / n_k * (t(cur_Y) %*% cur_Y)
+    AIC = AIC + n_k * sum(diag(S %*% theta[[k]])) - n_k * log(det(theta[[k]])) + 2 * E_k
+  }
+  
+  return(AIC)
+}
+
+# Function to do grid search to find optimal params using AIC - this is slow!
+get_optimal_params = function(Y, penalty, lambda1_opts, lambda2_opts) {
+  AIC_matrix = matrix(NA, length(lambda1_opts), length(lambda2_opts))
+  for (i in 1:nrow(AIC_matrix)) {
+    for (j in 1:ncol(AIC_matrix)) {
+      # print("l1")
+      # print(lambda1_opts[i])
+      # print("l2")
+      # print(lambda2_opts[j])
+      AIC_matrix[i, j] = get_AIC(lambda1_opts[i], lambda2_opts[j], Y, penalty)
+    }
+  }
+  #print(AIC_matrix)
+  # What if the min is not unique? Favor largest lambda1, then largest lambda2 since
+  # they recommend search over lamba1 first, then lambda2 when necessary
+  indices = which(AIC_matrix == min(AIC_matrix), arr.ind = TRUE)
+  
+  lambda1_index = max(indices[ , "row"])
+  lambda2_index = max(which(AIC_matrix[lambda1_index, ] == min(AIC_matrix)))
+  
+  lambda1 = lambda1_opts[lambda1_index]
+  lambda2 = lambda2_opts[lambda2_index]
+  
+  # Check to make sure we don't need to expand grid
+  # print(lambda1)
+  # print(lambda2)
+  # max(lambda1_opts)
+  # max(lambda2_opts)
+  if ((lambda1 == max(lambda1_opts)) || (lambda2 == max(lambda2_opts))) {
+    print("Max lambda value selected: need to expand grid")
+  }
+  
+  return(c(lambda1, lambda2))
+}
+
+summary_GHS = function(res_GHS, m_true, c) {
+  p = ncol(res_GHS[[1]][, , 1])
+  p2 = p * (p-1) / 2
+  B = ncol(res_GHS[[2]])
+  
+  prob = 1 - apply(res_GHS[[2]], 1, function(x) mean(1 / (1 + x)))
+  t = table(prob > 0.5, m_true)
+  acc_GHS = sum(diag(t)) / (p * (p-1) * 0.5)
+  TPR_GHS = t[2, 2] / (t[1, 2] + t[2, 2])
+  FPR_GHS = 1 - t[1, 1] / (t[1, 1] + t[2, 1])
+  roc_GHS = roc(m_true, prob)$auc
+  
+  TP = t[2, 2]
+  FP = t[2, 1]
+  TN = t[1, 1]
+  FN = t[1, 2]
+  MCC_GHS = ((TP * TN - FP * FN) / p2)  / ((sqrt((TP + FP)) / p2) * sqrt((TP + FN)) * sqrt((TN + FP)) * sqrt((TN + FN)))
+  
+  res_Omega = apply(res_GHS[[1]], c(1, 2), mean)
+  fr_loss_GHS = Frobenius(c, res_Omega)
+
+  bs = 1
+  for (i in 1:(p-1)) {
+    for (j in (i+1):p) {
+      if (prob[bs] <= 0.5) {
+        res_Omega[i, j] = res_Omega[j, i] = 0.0
+      }
+      
+      bs = bs + 1
+    }
+  }
+  fr_loss_GHS2 = Frobenius(c, res_Omega)
+  
+  out = matrix(0, 1, 7)
+  colnames(out) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+  out[1] = acc_GHS
+  out[2] = MCC_GHS
+  out[3] = TPR_GHS
+  out[4] = FPR_GHS
+  out[5] = roc_GHS
+  out[6] = fr_loss_GHS
+  out[7] = fr_loss_GHS2
+  
+  return(out)
+}
+
+
+summary_mGHS = function(res_mGHS, M_true, c_list) {
+  p = nrow(res_mGHS$Omega_jj)
+  p2 = p * (p-1) / 2
+  K = length(c_list)  
+  
+  out = matrix(0, K, 7)
+  colnames(out) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+  
+  for (k in 1:K)
+  {
+    prob = 1 - res_mGHS$lambda_prob[, k]
+    t = table(prob > 0.5, M_true[, k])
+    acc_mGHS = sum(diag(t)) / (p * (p-1) * 0.5)
+    TPR_mGHS = t[2, 2] / (t[1, 2] + t[2, 2])
+    FPR_mGHS = 1 - t[1, 1] / (t[1, 1] + t[2, 1])
+    roc_mGHS = roc(M_true[, k], prob)$auc
+    
+    TP = t[2, 2]
+    FP = t[2, 1]
+    TN = t[1, 1]
+    FN = t[1, 2]
+    MCC_mGHS = ((TP * TN - FP * FN) / p2)  / ((sqrt((TP + FP)) / p2) * sqrt((TP + FN)) * sqrt((TN + FP)) * sqrt((TN + FN)))
+      
+    res_Omega = matrix(0, p, p)
+    diag(res_Omega) = res_mGHS$Omega_jj[, k]
+    cs = 1
+    for (j in 1:(p-1)) {
+      for (js in (j+1):p) {
+        res_Omega[js, j] = res_Omega[j, js] = res_mGHS$Omega_ij[cs, k]
+        cs = cs + 1
+      }
+    }
+    fr_loss_mGHS = Frobenius(c_list[[k]], res_Omega)
+    
+    bs = 1
+    for (i in 1:(p-1)) {
+      for (j in (i+1):p) {
+        # print(prob[bs])
+        
+        if (prob[bs] <= 0.5) {
+          res_Omega[i, j] = res_Omega[j, i] = 0.0
+        }
+        
+        bs = bs + 1
+      }
+    }
+    fr_loss_mGHS2 = Frobenius(c_list[[k]], res_Omega)
+    
+    out[k, ] = c(acc_mGHS, MCC_mGHS, TPR_mGHS, FPR_mGHS, roc_mGHS, fr_loss_mGHS, fr_loss_mGHS2)
+  }
+
+  return(out)
+}
+
+summary_mGHS2 = function(res_mGHS, M_true, c_list, ta_est) {
+  p = nrow(res_mGHS$Omega_jj)
+  p2 = p * (p-1) / 2
+  K = length(c_list)  
+  
+  out = matrix(0, K, 7)
+  colnames(out) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+  
+  for (k in 1:K)
+  {
+    prob = 1 - res_mGHS$lambda_prob[, k]
+    t = table(prob > ta_est[k], M_true[, k])
+    
+    if (dim(t)[1] != 2) {
+      print("Warning: ")
+      if (sum(prob > ta_est[k]) == 0) {
+        print("all edges are excluded from the model")
+        
+        acc_mGHS = t[1]/ p2
+        TPR_mGHS = 0
+        FPR_mGHS = 0
+        roc_mGHS = 0.5
+        
+        TP = 0
+        FP = 0
+        TN = t[1]
+        FN = t[2]
+        
+        MCC_mGHS = 0
+        
+      } else {
+        print("all edges are included from the model")
+        
+        acc_mGHS = t[2]/ p2
+        TPR_mGHS = 1
+        FPR_mGHS = 0
+        roc_mGHS = 0.5
+        
+        TP = t[2]
+        FP = t[1]
+        TN = 0
+        FN = 0
+        
+        MCC_mGHS = 0  
+      }
+    } else {
+      acc_mGHS = sum(diag(t)) / (p * (p-1) * 0.5)
+      TPR_mGHS = t[2, 2] / (t[1, 2] + t[2, 2])
+      FPR_mGHS = 1 - t[1, 1] / (t[1, 1] + t[2, 1])
+      roc_mGHS = roc(M_true[, k], prob)$auc
+      
+      TP = t[2, 2]
+      FP = t[2, 1]
+      TN = t[1, 1]
+      FN = t[1, 2]
+      MCC_mGHS = ((TP * TN - FP * FN) / p2)  / ((sqrt((TP + FP)) / p2) * sqrt((TP + FN)) * sqrt((TN + FP)) * sqrt((TN + FN)))
+    }
+    
+    res_Omega = matrix(0, p, p)
+    diag(res_Omega) = res_mGHS$Omega_jj[, k]
+    cs = 1
+    for (j in 1:(p-1)) {
+      for (js in (j+1):p) {
+        res_Omega[js, j] = res_Omega[j, js] = res_mGHS$Omega_ij[cs, k]
+        cs = cs + 1
+      }
+    }
+    fr_loss_mGHS = Frobenius(c_list[[k]], res_Omega)
+    
+    bs = 1
+    for (i in 1:(p-1)) {
+      for (j in (i+1):p) {
+        if (prob[bs] <= ta_est[k]) {
+          res_Omega[i, j] = res_Omega[j, i] = 0.0
+        }
+        
+        bs = bs + 1
+      }
+    }
+    fr_loss_mGHS2 = Frobenius(c_list[[k]], res_Omega)
+    
+    out[k, ] = c(acc_mGHS, MCC_mGHS, TPR_mGHS, FPR_mGHS, roc_mGHS, fr_loss_mGHS, fr_loss_mGHS2)
+  }
+  
+  return(out)
+}
+
+
+summary_JGL = function(res_JGL, M_true, c_list) {
+  K = length(c_list)  
+  p = ncol(c_list[[1]])
+  p2 = p * (p-1) / 2
+  
+  out = matrix(0, K, 7)
+  colnames(out) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+  
+  prob = true_model(res_JGL[[1]])
+  
+  for (k in 1:K)
+  {
+    t = table(prob[, k] > 0.5, M_true[, k])
+    acc_JGL = sum(diag(t)) / (p * (p-1) * 0.5)
+    TPR_JGL = t[2, 2] / (t[1, 2] + t[2, 2])
+    FPR_JGL = 1 - t[1, 1] / (t[1, 1] + t[2, 1])
+    roc_JGL = roc(M_true[, k], prob[, k])$auc
+    
+    TP = t[2, 2]
+    FP = t[2, 1]
+    TN = t[1, 1]
+    FN = t[1, 2]
+    MCC_JGL = ((TP * TN - FP * FN) / p2)  / ((sqrt((TP + FP)) / p2) * sqrt((TP + FN)) * sqrt((TN + FP)) * sqrt((TN + FN)))
+    
+    fr_loss_JGL = Frobenius(c_list[[k]], res_JGL[[1]][[k]])
+    
+    bs = 1
+    for (i in 1:(p-1)) {
+      for (j in (i+1):p) {
+        if (prob[bs, k] <= 0.5) {
+          res_JGL[[1]][[k]][i, j] = res_JGL[[1]][[k]][j, i] = 0.0
+        }
+        
+        bs = bs + 1
+      }
+    }
+    fr_loss_JGL2 = Frobenius(c_list[[k]], res_JGL[[1]][[k]])
+    
+    out[k, ] = c(acc_JGL, MCC_JGL, TPR_JGL, FPR_JGL, roc_JGL, fr_loss_JGL, fr_loss_JGL2)
+  }
+  
+  return(out)
+}
+
+
+summary_GBAG = function(res_GBAG, M_true, c_list) {
+  K = length(c_list)  
+  p = ncol(c_list[[1]])
+  p2 = p * (p-1) / 2
+  
+  out = matrix(0, K, 7)
+  colnames(out) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+
+  for (k in 1:K) {
+    prob = res_GBAG$P[[k]][lower.tri(res_GBAG$P[[k]], diag = F)]
+    t = table(prob > 0.5, M_true[, k])
+    
+    if (dim(t)[1] != 2) {
+      print("Warning: ")
+      if (sum(prob > 0.5) == 0) {
+        print("no posterior probabilities greater then 0.5")
+        
+        acc_GBAG = t[1]/ (p * (p-1) * 0.5)
+        TPR_GBAG = 0
+        FPR_GBAG = 0
+        roc_GBAG = 0.5
+        
+        TP = 0
+        FP = 0
+        TN = t[1]
+        FN = t[2]
+        
+        MCC_GBAG = 0
+        
+      } else {
+        print("no posterior probabilities less then 0.5")
+        
+        acc_GBAG = t[2]/ (p * (p-1) * 0.5)
+        TPR_GBAG = 1
+        FPR_GBAG = 0
+        roc_GBAG = 0.5
+        
+        TP = t[2]
+        FP = t[1]
+        TN = 0
+        FN = 0
+        
+        MCC_GBAG = 0  
+      }
+    } else {
+      acc_GBAG = sum(diag(t)) / (p * (p-1) * 0.5)
+      TPR_GBAG = t[2, 2] / (t[1, 2] + t[2, 2])
+      FPR_GBAG = 1 - t[1, 1] / (t[1, 1] + t[2, 1])
+      roc_GBAG = roc(M_true[, k], prob)$auc
+      
+      TP = t[2, 2]
+      FP = t[2, 1]
+      TN = t[1, 1]
+      FN = t[1, 2]
+      
+      MCC_GBAG = ((TP * TN - FP * FN) / p2)  / ((sqrt((TP + FP)) / p2) * sqrt((TP + FN)) * sqrt((TN + FP)) * sqrt((TN + FN)))
+    }
+    
+    fr_loss_GBAG = Frobenius(c_list[[k]], res_GBAG[[1]][[k]])
+    fr_loss_GBAG2 = fr_loss_GBAG
+    
+    out[k, ] = c(acc_GBAG, MCC_GBAG, TPR_GBAG, FPR_GBAG, roc_GBAG, fr_loss_GBAG, fr_loss_GBAG2)
+  }
+  
+  return(out)
+}
+
+
+summary_jGHS = function(res_jGHS, M_true, c_list) {
+  K = length(c_list)  
+  p = ncol(c_list[[1]])
+  p2 = p * (p-1) / 2
+  
+  adj_mat = array(1, c(p, p, K))
+  for (k in 1:K) {
+    adj_mat[, , k] = abs(cov2cor(res_jGHS$theta[[k]])) > 1e-5 # the estimated adjacency matrix of graph 1
+  }
+  
+  out = matrix(0, K, 7)
+  colnames(out) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+  
+  for (k in 1:K)
+  {
+    A = adj_mat[, , k]
+    prob = A[lower.tri(A)]
+    t = table(prob, M_true[, k])
+    acc_jGHS = sum(diag(t)) / (p * (p-1) * 0.5)
+    TPR_jGHS = t[2, 2] / (t[1, 2] + t[2, 2])
+    FPR_jGHS = 1 - t[1, 1] / (t[1, 1] + t[2, 1])
+    roc_jGHS = roc(M_true[, k], prob)$auc
+    
+    TP = t[2, 2]
+    FP = t[2, 1]
+    TN = t[1, 1]
+    FN = t[1, 2]
+    MCC_jGHS = ((TP * TN - FP * FN) / p2)  / ((sqrt((TP + FP)) / p2) * sqrt((TP + FN)) * sqrt((TN + FP)) * sqrt((TN + FN)))
+    print(MCC_jGHS)
+    
+    fr_loss_jGHS = Frobenius(c_list[[k]], res_jGHS$theta[[k]])
+    fr_loss_jGHS2 = fr_loss_jGHS
+    
+    out[k, ] = c(acc_jGHS, MCC_jGHS, TPR_jGHS, FPR_jGHS, roc_jGHS, fr_loss_jGHS, fr_loss_jGHS2)
+  }
+  
+  return(out)
+}
+
+
+# get_ta = function(B, K, pi_chain, a, b) {
+#   p2 = ncol(pi_chain) / K
+#   Bc = nrow(pi_chain)
+#   
+#   ta = rep(0.5, K)
+#   ta_s = 0
+#   
+#   # a_est = matrix(0, p2, K)
+#   # b_est = matrix(0, p2, K)
+#   z = matrix(0, p2, K)
+#   
+#   qta1 = matrix(0, p2, K)
+#   qta2 = rep(0, p2)
+#   
+#   l1 = rep(0, K)
+#   
+#   js = 1
+#   for (h in 1:K) {
+#     for (j in 1:p2) {
+#       qta1[j, h] = sum(pi_chain[, js] > 0.5) / Bc
+#       js = js + 1
+#       
+#       z[j, h] = rbinom(1, 1, qta1[j, h])
+#       if (z[j, h] == 1) {
+#         l1[h] = l1[h] + log(qta1[j, h])
+#       } else {
+#         l1[h] = l1[h] + log(1 - qta1[j, h])
+#       }
+#     }
+#   }
+#   
+#   ta_out = matrix(0, B, K)
+#   l_out = matrix(0, B, K)
+#   
+#   for (bs in 1:B) {
+#     
+#     js = 1
+#     for (h in 1:K) {
+#       
+#       ta_s = rbeta(1, a, b)
+#       l2 = 0.0
+#       
+#       for (j in 1:p2) {
+#         qta2[j] = sum(pi_chain[, js] > ta_s) / Bc
+#         js = js + 1 
+#         
+#         if (z[j, h] == 1) {
+#           l2 = l2 + log(qta2[j])
+#         } else {
+#           l2 = l2 + log(1 - qta2[j])
+#         }
+#       }
+#       
+#       a_MH = l2 - l1[h]
+#       if (log(runif(1)) < a_MH) {
+#         ta[h] = ta_s
+#         l1[h] = l2
+#         qta1[, h] = qta2
+#       }
+#       
+#       ta_out[bs, h] = ta[h]
+#       l_out[bs, h] = l1[h]
+#       
+#       for (j in 1:p2) {
+#         z[j, h] = rbinom(1, 1, qta1[j, h])
+#       }
+#     }
+#   }
+#   
+#   return(list("ta" = ta_out, "l1" = l_out))
+# }

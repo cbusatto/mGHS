@@ -1,0 +1,124 @@
+require(mvtnorm)
+require(pROC)
+require(mGHS)
+library(StatPerMeCo)
+# library(foreach)
+# library(doMC)
+# registerDoMC(4)
+
+load("C:/Users/ASUS/Dropbox/Thesis/mGHS_Project/simulations/n50_p50/c_p50_Coupled.RData")
+
+set.seed(10)
+K = 4
+p = 30
+
+c1 = c1[1:p, 1:p]
+c2 = c2[1:p, 1:p]
+c3 = c3[1:p, 1:p]
+c4 = c4[1:p, 1:p]
+
+N_iter = 10
+
+B = 5000
+bn = 2500
+
+tm = true_model(list(c1, c2, c3, c4))
+
+## ::::::::::::::::::::::::::
+## n = 50
+
+n = rep(50, K)
+
+RES = matrix(0, N_iter, 7*16)
+
+# cpar = foreach (is = 1:N_iter, .combine = rbind, .packages = c("Rcpp", "mvtnorm", "pROC", "mGHS", "GHS", "JGL", "StatPerMeCo")) %dopar% {
+for(is in 1:N_iter) {
+  print(":::::::::: iteration: ")
+  print(is)
+  Y1 = rmvnorm(n[1], rep(0, p), solve(c1))
+  Y2 = rmvnorm(n[2], rep(0, p), solve(c2))
+  Y3 = rmvnorm(n[3], rep(0, p), solve(c3))
+  Y4 = rmvnorm(n[4], rep(0, p), solve(c4))
+  
+  S = list()
+  S[[1]] = t(Y1) %*% Y1
+  S[[2]] = t(Y2) %*% Y2
+  S[[3]] = t(Y3) %*% Y3
+  S[[4]] = t(Y4) %*% Y4
+  
+  ## ::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  ## multiple Graphical Horseshoe
+  print("\n")
+  print(":::: mGHS: ")
+  
+  res_mGHS = mGHS(B, bn, n, S, p, c(30, 25), 500)
+  
+  RcppParallel::setThreadOptions(numThreads = 4)
+  res_mGHS2 = mGHS2(B, bn, n, S, p, c(30, 25), 500)
+  
+  ## ::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  ## Performance indexes
+  
+  ## mGHS
+  tmp_mGHS = summary_mGHS(res_mGHS, tm, list(c1, c2, c3, c4))
+  tmp_mGHS2 = summary_mGHS2(res_mGHS, tm, list(c1, c2, c3, c4), res_mGHS$ta)
+  
+  tmp_mGHS3 = summary_mGHS(res_mGHS2, tm, list(c1, c2, c3, c4))
+  tmp_mGHS4 = summary_mGHS2(res_mGHS2, tm, list(c1, c2, c3, c4), res_mGHS$ta)
+  
+  RES[is, ] = c(tmp_mGHS[1, ], tmp_mGHS[2, ], tmp_mGHS[3, ], tmp_mGHS[4, ],
+                tmp_mGHS2[1, ], tmp_mGHS2[2, ], tmp_mGHS2[3, ], tmp_mGHS2[4, ],
+                tmp_mGHS3[1, ], tmp_mGHS3[2, ], tmp_mGHS3[3, ], tmp_mGHS3[4, ],
+                tmp_mGHS4[1, ], tmp_mGHS4[2, ], tmp_mGHS4[3, ], tmp_mGHS4[4, ])
+}
+
+res_mean_final = apply(cpar, 2, mean)
+res_sd_final = apply(cpar, 2, sd)
+
+res_g1_mean = matrix(c(res_mean_final[c(1:7, 29:35, 57:63, 85:91)]), 4, 7, byrow = T)
+colnames(res_g1_mean) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+rownames(res_g1_mean) = c("mGHS", "mGHS2", "mGHS3", "mGHS4")
+
+res_g2_mean = matrix(c(res_mean_final[c(8:14, 36:42, 64:70, 92:98)]), 4, 7, byrow = T)
+colnames(res_g2_mean) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+rownames(res_g2_mean) = c("mGHS", "mGHS2", "mGHS3", "mGHS4")
+
+res_g3_mean = matrix(c(res_mean_final[c(15:21, 43:49, 71:77, 99:105)]), 4, 7, byrow = T)
+colnames(res_g3_mean) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+rownames(res_g3_mean) = c("mGHS", "mGHS2", "mGHS3", "mGHS4")
+
+res_g4_mean = matrix(c(res_mean_final[c(22:28, 50:56, 78:84)]), 4, 7, byrow = T)
+colnames(res_g4_mean) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+rownames(res_g4_mean) = c("mGHS", "mGHS2", "mGHS3", "mGHS4")
+
+res_g1_sd = matrix(c(res_sd_final[c(1:7, 29:35, 57:63, 85:91)]), 4, 7, byrow = T)
+colnames(res_g1_sd) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+rownames(res_g1_sd) = c("mGHS", "mGHS2", "mGHS3", "mGHS4")
+
+res_g2_sd = matrix(c(res_sd_final[c(8:14, 36:42, 64:70, 92:98)]), 4, 7, byrow = T)
+colnames(res_g2_sd) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+rownames(res_g2_sd) = c("mGHS", "mGHS2", "mGHS3", "mGHS4")
+
+res_g3_sd = matrix(c(res_sd_final[c(15:21, 43:49, 71:77, 99:105)]), 4, 7, byrow = T)
+colnames(res_g3_sd) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+rownames(res_g3_sd) = c("mGHS", "mGHS2", "mGHS3", "mGHS4")
+
+res_g4_sd = matrix(c(res_sd_final[c(22:28, 50:56, 78:84, 106:112)]), 4, 7, byrow = T)
+colnames(res_g4_sd) = c("Acc", "MCC", "TPR", "FPR", "AUC", "Fr Loss", "Fr2 Loss")
+rownames(res_g4_sd) = c("mGHS", "mGHS2", "mGHS3", "mGHS4")
+
+res_Coupled_g1_mean = res_g1_mean
+res_Coupled_g2_mean = res_g2_mean
+res_Coupled_g3_mean = res_g3_mean
+res_Coupled_g4_mean = res_g4_mean
+
+res_Coupled_g1_sd = res_g1_sd
+res_Coupled_g2_sd = res_g2_sd
+res_Coupled_g3_sd = res_g3_sd
+res_Coupled_g4_sd = res_g4_sd
+
+res_Coupled_mean = res_Coupled_g1_mean + res_Coupled_g2_mean + res_Coupled_g3_mean + res_Coupled_g4_mean
+res_Coupled_sd = res_Coupled_g1_sd + res_Coupled_g2_sd + res_Coupled_g3_sd + res_Coupled_g4_sd
+
+save(res_Coupled_mean, res_Coupled_g1_mean, res_Coupled_g2_mean, res_Coupled_g3_mean, res_Coupled_g4_mean, file = "sim_n50_p50_mean_Coupled.RData")
+save(res_Coupled_sd, res_Coupled_g1_sd, res_Coupled_g2_sd, res_Coupled_g3_sd, res_Coupled_g4_sd, file = "sim_n50_p50_sd_Coupled.RData")

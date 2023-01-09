@@ -1,0 +1,510 @@
+[
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/DVLA.cpp",
+        "file_last_write": 1651111065.0,
+        "definitions": [
+            {
+                "usr": "c:@F@DVLA#&1d#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "DVLA(const double &, const double &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/DVLA.cpp",
+                "line": 13,
+                "column": 8,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/DVLA.h",
+        "file_last_write": 1651071353.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/DVSA.cpp",
+        "file_last_write": 1651111071.0,
+        "definitions": [
+            {
+                "usr": "c:@F@DVSA#&1d#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "DVSA(const double &, const double &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/DVSA.cpp",
+                "line": 12,
+                "column": 8,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/DVSA.h",
+        "file_last_write": 1651076488.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/Gamma2.cpp",
+        "file_last_write": 1651111086.0,
+        "definitions": [
+            {
+                "usr": "c:@F@gamma2#&1d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "gamma2(const double &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/Gamma2.cpp",
+                "line": 10,
+                "column": 8,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/Gamma2.h",
+        "file_last_write": 1651069650.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/VVLA.cpp",
+        "file_last_write": 1651111061.0,
+        "definitions": [
+            {
+                "usr": "c:@F@VVLA#&1d#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "VVLA(const double &, const double &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/VVLA.cpp",
+                "line": 13,
+                "column": 8,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/VVLA.h",
+        "file_last_write": 1651071817.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/factorial.cpp",
+        "file_last_write": 1651766031.0,
+        "definitions": [
+            {
+                "usr": "c:@F@factorial#&1I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "factorial(const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/factorial.cpp",
+                "line": 9,
+                "column": 11,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/factorial.h",
+        "file_last_write": 1651766030.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS.cpp",
+        "file_last_write": 1670300365.0,
+        "definitions": [
+            {
+                "usr": "c:mGHS.cpp@T@vector_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "vector_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS.cpp",
+                "line": 18,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:mGHS.cpp@T@matrix_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "matrix_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS.cpp",
+                "line": 19,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:mGHS.cpp@T@array_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "array_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS.cpp",
+                "line": 20,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@mGHS#&1I#S0_#&1$@N@Eigen@S@Matrix>#d#VI-1#VI1#VI0#VI-1#VI1#&1$@N@Rcpp@S@Vector>#VI19#@N@Rcpp@ST>1#T@PreserveStorage#S0_#1S2_#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "mGHS(const int &, const int &, const Eigen::VectorXd &, const Rcpp::List &, const int &, const Eigen::VectorXd, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS.cpp",
+                "line": 25,
+                "column": 12,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@mGHS2#&1I#S0_#&1$@N@Eigen@S@Matrix>#d#VI-1#VI1#VI0#VI-1#VI1#&1$@N@Rcpp@S@Vector>#VI19#@N@Rcpp@ST>1#T@PreserveStorage#S0_#1S2_#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "mGHS2(const int &, const int &, const Eigen::VectorXd &, const Rcpp::List &, const int &, const Eigen::VectorXd, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS.cpp",
+                "line": 412,
+                "column": 12,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS_pred.cpp",
+        "file_last_write": 1653525957.0,
+        "definitions": [
+            {
+                "usr": "c:mGHS_pred.cpp@T@vector_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "vector_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS_pred.cpp",
+                "line": 18,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:mGHS_pred.cpp@T@matrix_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "matrix_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS_pred.cpp",
+                "line": 19,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:mGHS_pred.cpp@T@array_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "array_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS_pred.cpp",
+                "line": 20,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@mGHS_pred#&1I#S0_#&1$@N@Eigen@S@Matrix>#d#VI-1#VI1#VI0#VI-1#VI1#&1$@N@Rcpp@S@Vector>#VI19#@N@Rcpp@ST>1#T@PreserveStorage#S0_#S3_#S0_#&1$@N@Eigen@S@Matrix>#I#VI-1#VI1#VI0#VI-1#VI1#1S2_#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "mGHS_pred(const int &, const int &, const Eigen::VectorXd &, const Rcpp::List &, const int &, const Rcpp::List &, const int &, const Eigen::VectorXi &, const Eigen::VectorXd, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/mGHS_pred.cpp",
+                "line": 25,
+                "column": 12,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/pbdv.cpp",
+        "file_last_write": 1665623249.0,
+        "definitions": [
+            {
+                "usr": "c:@F@pbdv#&1d#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "pbdv(const double &, const double &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/pbdv.cpp",
+                "line": 21,
+                "column": 8,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/pbdv.h",
+        "file_last_write": 1651077439.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/rIW.cpp",
+        "file_last_write": 1651765955.0,
+        "definitions": [
+            {
+                "usr": "c:@F@rIW#&1d#&1$@N@Eigen@S@Matrix>#d#VI-1#VI-1#VI0#VI-1#VI-1#&1I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "rIW(const double &, const Eigen::MatrixXd &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/rIW.cpp",
+                "line": 14,
+                "column": 17,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/rgamma3p.cpp",
+        "file_last_write": 1670255836.0,
+        "definitions": [
+            {
+                "usr": "c:@F@rg3p_c1#&1d#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "rg3p_c1(const double &, const double &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/rgamma3p.cpp",
+                "line": 21,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@rg3p_approx#&1d#S0_#&1I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "rg3p_approx(const double &, const double &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/rgamma3p.cpp",
+                "line": 401,
+                "column": 8,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/rgamma3p_tabulated.cpp",
+        "file_last_write": 1665666516.0,
+        "definitions": [
+            {
+                "usr": "c:@F@rg3p#&1d#S0_#&1I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "rg3p(const double &, const double &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/rgamma3p_tabulated.cpp",
+                "line": 24,
+                "column": 8,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+        "file_last_write": 1670368329.0,
+        "definitions": [
+            {
+                "usr": "c:utils_mGHS.cpp@T@vector_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "vector_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 18,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:utils_mGHS.cpp@T@matrix_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "matrix_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 19,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:utils_mGHS.cpp@T@array_type",
+                "kind": 8,
+                "parent_name": "",
+                "name": "array_type",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 20,
+                "column": 39,
+                "hidden": false
+            },
+            {
+                "usr": "c:utils_mGHS.cpp@T@range",
+                "kind": 8,
+                "parent_name": "",
+                "name": "range",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 21,
+                "column": 33,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@inverse#&$@N@Eigen@S@Matrix>#d#VI-1#VI1#VI0#VI-1#VI1#&1I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "inverse(Eigen::VectorXd &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 27,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@sinverse#&$@N@Eigen@S@Matrix>#d#VI-1#VI1#VI0#VI-1#VI1#&1I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "sinverse(Eigen::VectorXd &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 35,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@delete_elem_from_boost_vec#&1I#S0_#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "delete_elem_from_boost_vec(const vector_type &, const int &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 43,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@delete_elem_from_eigen_vec#&1$@N@Eigen@S@Matrix>#d#VI-1#VI1#VI0#VI-1#VI1#&1I#S2_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "delete_elem_from_eigen_vec(const Eigen::VectorXd &, const int &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 62,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@delete_rc_from_eigen#&1$@N@Eigen@S@Matrix>#d#VI-1#VI-1#VI0#VI-1#VI-1#&1I#S2_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "delete_rc_from_eigen(const Eigen::MatrixXd &, const int &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 85,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@delete_rc_from_boost1#&1I#S0_#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "delete_rc_from_boost1(const matrix_type &, const int &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 111,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@delete_rc_from_boost2#&I#&1I#S1_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "delete_rc_from_boost2(matrix_type &, const int &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 139,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@get_matrix#&1I#S0_#S0_#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "get_matrix(const int &, const matrix_type &, const int &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 167,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@get_Sigma_h#&I#&1I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "get_Sigma_h(matrix_type &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 191,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@get_delta#&1$@N@Eigen@S@Matrix>#d#VI-1#VI1#VI0#VI-1#VI1#&1$@N@Eigen@S@Matrix>#d#VI-1#VI-1#VI0#VI-1#VI-1#&1I#S4_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "get_delta(const Eigen::VectorXd &, const Eigen::MatrixXd &, const int &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 201,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@get_s2#&1I#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "get_s2(const vector_type &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 212,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@fill_S#&1$@N@Eigen@S@Matrix>#d#VI-1#VI-1#VI0#VI-1#VI-1#&1I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "fill_S(const Eigen::MatrixXd &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 220,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@fill_Xt#&1$@N@Eigen@S@Matrix>#d#VI-1#VI-1#VI0#VI-1#VI-1#&1I#S2_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "fill_Xt(const Eigen::MatrixXd &, const int &, const int &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 229,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@lambda_pstep#&1$@N@Eigen@S@Matrix>#d#VI-1#VI1#VI0#VI-1#VI1#S0_#S0_#&1d#S2_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "lambda_pstep(const Eigen::VectorXd &, const Eigen::VectorXd &, const Eigen::VectorXd &, const double &, const double &)",
+                "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.cpp",
+                "line": 417,
+                "column": 46,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_mGHS.h",
+        "file_last_write": 1670297831.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_rIW.h",
+        "file_last_write": 1641853000.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/ASUS/Desktop/mGHS/src/utils_rgamma3p.h",
+        "file_last_write": 1670258417.0,
+        "definitions": [],
+        "hidden": false
+    }
+]
