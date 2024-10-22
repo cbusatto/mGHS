@@ -1,0 +1,205 @@
+# Load required package
+library(igraph)
+
+# Set seed for random number generator
+set.seed(62145)
+
+fix_matrix <- function(A, denom_factor = 1) {
+  # Fix to ensure positive definiteness from Danaher et al
+  # Divide each off-diagonal element by sum of absolute values of
+  # off-diagonal elements in its row
+  p <- nrow(A)
+  
+  for (cur_row in 1:p) {
+    cur_sum <- sum(abs(A[cur_row, ])) - 1
+    if (cur_sum != 0) {
+      A[cur_row, ] <- A[cur_row, ] / (denom_factor * cur_sum)
+    }
+    
+    # Make sure diagonal entries are still 1
+    A[cur_row, cur_row] <- 1
+  }
+  
+  # Final matrix is average of matrix with its transpose
+  A <- (A + t(A)) / 2
+}
+
+p <- 500
+
+# Simulate a network with five communities, each a scale-free network on 20 nodes
+# a1 = adjacency matrix for group 1
+a1 <- matrix(0, nrow = p, ncol = p)
+n_lobes <- 1
+start_ind <- 1
+stop_ind <- p / 1
+for (cur_lobe in 1:n_lobes) {
+  g1_cur_lobe <- barabasi.game(p / 1, power = 1.3, directed = FALSE, m = 1)
+  a1_cur_lobe <- as.matrix(as_adjacency_matrix(g1_cur_lobe))
+  a1[start_ind:stop_ind, start_ind:stop_ind] <- a1_cur_lobe
+  start_ind <- start_ind + p / 1
+  stop_ind <- stop_ind + p / 1
+}
+
+# Generate a symmetric precision (concentration) matrix c1 corresponding to a1
+c1 <- matrix(NA, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in i:p) {
+    if (i == j) {
+      c1[i, j] <- 1
+    } else if (a1[i, j] == 1) {
+      c1[i, j] <- runif(1, 0.4, 0.6) * sample(c(1,-1), 1)
+      c1[j, i] <- c1[i, j]
+    } else {
+      c1[i, j] <- 0
+      c1[j, i] <- 0
+    }
+  }
+}
+isSymmetric(c1)
+
+# n_rem <- 250
+# nonzero_inds <- which((c1 - diag(1, p)) != 0, arr.ind = TRUE)
+# inds_to_remove <- nonzero_inds[sample(nrow(nonzero_inds), n_rem), ]
+# for (i in 1:n_rem) {
+#   c1[inds_to_remove[i, 1], inds_to_remove[i, 2]] <- 0
+#   c1[inds_to_remove[i, 2], inds_to_remove[i, 1]] <- 0
+# }
+# isSymmetric(c1)
+
+# Create second graph independently
+a1 <- matrix(0, nrow = p, ncol = p)
+n_lobes <- 1
+start_ind <- 1
+stop_ind <- p / 1
+for (cur_lobe in 1:n_lobes) {
+  g1_cur_lobe <- barabasi.game(p / 1, power = 1.1, directed = FALSE, m = 1)
+  a1_cur_lobe <- as.matrix(as_adjacency_matrix(g1_cur_lobe))
+  a1[start_ind:stop_ind, start_ind:stop_ind] <- a1_cur_lobe
+  start_ind <- start_ind + p / 1
+  stop_ind <- stop_ind + p / 1
+}
+
+# Generate a symmetric precision (concentration) matrix c2 corresponding to a1
+c2 <- matrix(NA, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in i:p) {
+    if (i == j) {
+      c2[i, j] <- 1
+    } else if (a1[i, j] == 1) {
+      c2[i, j] <- runif(1, 0.4, 0.6) * sample(c(1,-1), 1)
+      c2[j, i] <- c2[i, j]
+    } else {
+      c2[i, j] <- 0
+      c2[j, i] <- 0
+    }
+  }
+}
+isSymmetric(c2)
+
+# n_rem <- 250
+# nonzero_inds <- which((c2 - diag(1, p)) != 0, arr.ind = TRUE)
+# inds_to_remove <- nonzero_inds[sample(nrow(nonzero_inds), n_rem), ]
+# for (i in 1:n_rem) {
+#   c2[inds_to_remove[i, 1], inds_to_remove[i, 2]] <- 0
+#   c2[inds_to_remove[i, 2], inds_to_remove[i, 1]] <- 0
+# }
+# isSymmetric(c2)
+
+# Now adjust the first two precision matrices following Danaher et al approach
+c1 <- fix_matrix(c1, 2.5)
+c2 <- fix_matrix(c2, 2.2)
+
+# Create third graph independently
+a1 <- matrix(0, nrow = p, ncol = p)
+n_lobes <- 1
+start_ind <- 1
+stop_ind <- p / 1
+for (cur_lobe in 1:n_lobes) {
+  g1_cur_lobe <- barabasi.game(p / 1, power = 1.3, directed = FALSE, m = 1)
+  a1_cur_lobe <- as.matrix(as_adjacency_matrix(g1_cur_lobe))
+  a1[start_ind:stop_ind, start_ind:stop_ind] <- a1_cur_lobe
+  start_ind <- start_ind + p / 1
+  stop_ind <- stop_ind + p / 1
+}
+
+# Generate a symmetric precision (concentration) matrix c3 corresponding to a1
+c3 <- matrix(NA, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in i:p) {
+    if (i == j) {
+      c3[i, j] <- 1
+    } else if (a1[i, j] == 1) {
+      c3[i, j] <- runif(1, 0.4, 0.6) * sample(c(1,-1), 1)
+      c3[j, i] <- c3[i, j]
+    } else {
+      c3[i, j] <- 0
+      c3[j, i] <- 0
+    }
+  }
+}
+isSymmetric(c3)
+
+# n_rem <- 250
+# nonzero_inds <- which((c3 - diag(1, p)) != 0, arr.ind = TRUE)
+# inds_to_remove <- nonzero_inds[sample(nrow(nonzero_inds), n_rem), ]
+# for (i in 1:n_rem) {
+#   c3[inds_to_remove[i, 1], inds_to_remove[i, 2]] <- 0
+#   c3[inds_to_remove[i, 2], inds_to_remove[i, 1]] <- 0
+# }
+# isSymmetric(c3)
+
+# Create fourth graph independently
+a1 <- matrix(0, nrow = p, ncol = p)
+n_lobes <- 1
+start_ind <- 1
+stop_ind <- p / 1
+for (cur_lobe in 1:n_lobes) {
+  g1_cur_lobe <- barabasi.game(p / 1, power = 1.2, directed = FALSE, m = 1)
+  a1_cur_lobe <- as.matrix(as_adjacency_matrix(g1_cur_lobe))
+  a1[start_ind:stop_ind, start_ind:stop_ind] <- a1_cur_lobe
+  start_ind <- start_ind + p / 1
+  stop_ind <- stop_ind + p / 1
+}
+
+# Generate a symmetric precision (concentration) matrix c4 corresponding to a1
+c4 <- matrix(NA, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in i:p) {
+    if (i == j) {
+      c4[i, j] <- 1
+    } else if (a1[i, j] == 1) {
+      c4[i, j] <- runif(1, 0.4, 0.6) * sample(c(1,-1), 1)
+      c4[j, i] <- c4[i, j]
+    } else {
+      c4[i, j] <- 0
+      c4[j, i] <- 0
+    }
+  }
+}
+isSymmetric(c4)
+
+# n_rem <- 250
+# nonzero_inds <- which((c4 - diag(1, p)) != 0, arr.ind = TRUE)
+# inds_to_remove <- nonzero_inds[sample(nrow(nonzero_inds), n_rem), ]
+# for (i in 1:n_rem) {
+#   c4[inds_to_remove[i, 1], inds_to_remove[i, 2]] <- 0
+#   c4[inds_to_remove[i, 2], inds_to_remove[i, 1]] <- 0
+# }
+# isSymmetric(c4)
+# Now adjust the first two precision matrices following Danaher et al approach
+# c1 <- fix_matrix(c1, 1.2)
+# c2 <- fix_matrix(c2, 1.3)
+c3 <- fix_matrix(c3, 2.1)
+c4 <- fix_matrix(c4, 2.3)
+
+# Check that all eigenvalues are positive i.e. the matrices are positive definite
+min(eigen(c1)$values)
+min(eigen(c2)$values)
+min(eigen(c3)$values)
+min(eigen(c4)$values)
+
+# save(c1, c2, c3, c4, file = "c_p50_Independent.RData")
+# save(c1, c2, c3, c4, file = "c_p100_Independent.RData")
+# save(c1, c2, c3, c4, file = "c_p150_Independent.RData")
+# save(c1, c2, c3, c4, file = "c_p250_Independent.RData")
+save(c1, c2, c3, c4, file = "c_p500_Independent.RData")
