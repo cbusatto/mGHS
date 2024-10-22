@@ -24,7 +24,7 @@ typedef array_type::index_range range;
 #define s2pi 2.506628274631
 
 
-Eigen::VectorXd inverse (Eigen::VectorXd& x, const int& n)
+Eigen::VectorXd inverse (Eigen::VectorXd x, const int& n)
 {
   for (int j = 0; j < n; ++j)
     x(j) = 1.0 / x(j);
@@ -32,7 +32,7 @@ Eigen::VectorXd inverse (Eigen::VectorXd& x, const int& n)
 }
 
 
-Eigen::VectorXd sinverse (Eigen::VectorXd& x, const int& n)
+Eigen::VectorXd sinverse (Eigen::VectorXd x, const int& n)
 {
   for (int j = 0; j < n; ++j)
     x(j) = 1.0 / sqrt(x(j));

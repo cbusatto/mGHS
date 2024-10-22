@@ -398,6 +398,8 @@ double rg3p_c1 (const double& a, const double& b)
 }
 
 
+// [[Rcpp::export]]
+
 double rg3p_approx (const double& a, const double& b, const int& c) 
 {
   if ((c > 14) || (b > 0.0)) 

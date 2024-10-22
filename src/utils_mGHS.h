@@ -5,8 +5,8 @@
 
 double pgamma3p1 (const double& x, const double& a, const double& b);
   
-Eigen::VectorXd inverse (Eigen::VectorXd& x, const int& n);
-Eigen::VectorXd sinverse (Eigen::VectorXd& x, const int& n);
+Eigen::VectorXd inverse (Eigen::VectorXd x, const int& n);
+Eigen::VectorXd sinverse (Eigen::VectorXd x, const int& n);
 Eigen::VectorXd delete_elem_from_boost_vec (const boost::multi_array<double, 1>& x, const int& j, const int& nm1);
 Eigen::VectorXd delete_elem_from_eigen_vec (const Eigen::VectorXd& x, const int& j, const int& nm1);
 Eigen::VectorXd get_s2 (const boost::multi_array<double, 1>& s_h, const int& p);

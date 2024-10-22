@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // mGHS
-Rcpp::List mGHS(const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& ping);
-RcppExport SEXP _mGHS_mGHS(SEXP BSEXP, SEXP bnSEXP, SEXP nSEXP, SEXP SSEXP, SEXP pSEXP, SEXP hyp_taSEXP, SEXP pingSEXP) {
+Rcpp::List mGHS(const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& chain, const int& ping);
+RcppExport SEXP _mGHS_mGHS(SEXP BSEXP, SEXP bnSEXP, SEXP nSEXP, SEXP SSEXP, SEXP pSEXP, SEXP hyp_taSEXP, SEXP chainSEXP, SEXP pingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,14 +23,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::List& >::type S(SSEXP);
     Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd >::type hyp_ta(hyp_taSEXP);
+    Rcpp::traits::input_parameter< const int& >::type chain(chainSEXP);
     Rcpp::traits::input_parameter< const int& >::type ping(pingSEXP);
-    rcpp_result_gen = Rcpp::wrap(mGHS(B, bn, n, S, p, hyp_ta, ping));
+    rcpp_result_gen = Rcpp::wrap(mGHS(B, bn, n, S, p, hyp_ta, chain, ping));
     return rcpp_result_gen;
 END_RCPP
 }
-// mGHS2
-Rcpp::List mGHS2(const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& ping);
-RcppExport SEXP _mGHS_mGHS2(SEXP BSEXP, SEXP bnSEXP, SEXP nSEXP, SEXP SSEXP, SEXP pSEXP, SEXP hyp_taSEXP, SEXP pingSEXP) {
+// mGHS_new
+Rcpp::List mGHS_new(const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& chain, const int& ping);
+RcppExport SEXP _mGHS_mGHS_new(SEXP BSEXP, SEXP bnSEXP, SEXP nSEXP, SEXP SSEXP, SEXP pSEXP, SEXP hyp_taSEXP, SEXP chainSEXP, SEXP pingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -40,28 +41,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::List& >::type S(SSEXP);
     Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd >::type hyp_ta(hyp_taSEXP);
+    Rcpp::traits::input_parameter< const int& >::type chain(chainSEXP);
     Rcpp::traits::input_parameter< const int& >::type ping(pingSEXP);
-    rcpp_result_gen = Rcpp::wrap(mGHS2(B, bn, n, S, p, hyp_ta, ping));
-    return rcpp_result_gen;
-END_RCPP
-}
-// mGHS_pred
-Rcpp::List mGHS_pred(const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Rcpp::List& X_test, const int& j_train, const Eigen::VectorXi& n_test, const Eigen::VectorXd hyp_ta, const int& ping);
-RcppExport SEXP _mGHS_mGHS_pred(SEXP BSEXP, SEXP bnSEXP, SEXP nSEXP, SEXP SSEXP, SEXP pSEXP, SEXP X_testSEXP, SEXP j_trainSEXP, SEXP n_testSEXP, SEXP hyp_taSEXP, SEXP pingSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const int& >::type B(BSEXP);
-    Rcpp::traits::input_parameter< const int& >::type bn(bnSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type n(nSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type S(SSEXP);
-    Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type X_test(X_testSEXP);
-    Rcpp::traits::input_parameter< const int& >::type j_train(j_trainSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXi& >::type n_test(n_testSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type hyp_ta(hyp_taSEXP);
-    Rcpp::traits::input_parameter< const int& >::type ping(pingSEXP);
-    rcpp_result_gen = Rcpp::wrap(mGHS_pred(B, bn, n, S, p, X_test, j_train, n_test, hyp_ta, ping));
+    rcpp_result_gen = Rcpp::wrap(mGHS_new(B, bn, n, S, p, hyp_ta, chain, ping));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -102,6 +84,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rg3p_approx
+double rg3p_approx(const double& a, const double& b, const int& c);
+RcppExport SEXP _mGHS_rg3p_approx(SEXP aSEXP, SEXP bSEXP, SEXP cSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const int& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(rg3p_approx(a, b, c));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rg3p
 double rg3p(const double& a, const double& b, const int& c);
 RcppExport SEXP _mGHS_rg3p(SEXP aSEXP, SEXP bSEXP, SEXP cSEXP) {
@@ -130,12 +125,12 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_mGHS_mGHS", (DL_FUNC) &_mGHS_mGHS, 7},
-    {"_mGHS_mGHS2", (DL_FUNC) &_mGHS_mGHS2, 7},
-    {"_mGHS_mGHS_pred", (DL_FUNC) &_mGHS_mGHS_pred, 10},
+    {"_mGHS_mGHS", (DL_FUNC) &_mGHS_mGHS, 8},
+    {"_mGHS_mGHS_new", (DL_FUNC) &_mGHS_mGHS_new, 8},
     {"_mGHS_pbdv", (DL_FUNC) &_mGHS_pbdv, 2},
     {"_mGHS_rIW", (DL_FUNC) &_mGHS_rIW, 3},
     {"_mGHS_rg3p_c1", (DL_FUNC) &_mGHS_rg3p_c1, 2},
+    {"_mGHS_rg3p_approx", (DL_FUNC) &_mGHS_rg3p_approx, 3},
     {"_mGHS_rg3p", (DL_FUNC) &_mGHS_rg3p, 3},
     {"_mGHS_pgamma3p1", (DL_FUNC) &_mGHS_pgamma3p1, 3},
     {NULL, NULL, 0}
