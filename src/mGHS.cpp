@@ -20,14 +20,16 @@ typedef boost::multi_array<double, 2> matrix_type;
 typedef boost::multi_array<double, 3> array_type;
 
 
-// [[Rcpp::export]]
-
-Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& ping = 2500) 
+Rcpp::List mGHS_mean (const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& ping = 1000) 
 {
-  // B number of iteration
-  // bn burn-in
-  // n vector K-dim
-  // S array p x p x K
+  // INPUT
+  // B: number of iteration
+  // bn: burn-in
+  // n: K-dim vector containing sample size of each group
+  // S: K-dim list with matrix S[[k]] = t(Yk) %*% Yk
+  // p: dimensionality of the problem
+  // hyp_ta: hyperparameters a and b of cut model
+  // ping: print progress every ping iterations (default is 1000)
   
   typedef array_type::index_range range;
   
@@ -60,7 +62,6 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
   Eigen::VectorXd temp_3(pm1); temp_3.setZero();
   Eigen::VectorXd s_12(pm1); s_12.setZero();
   Eigen::VectorXd sigma_12(pm1); sigma_12.setZero();
-  // Eigen::VectorXd eta_12(pm1); eta_12.setZero();
   Eigen::VectorXd delta_12(pm1); delta_12.setZero();
   
   Eigen::MatrixXd Rinv(Km1, Km1); Rinv.setZero();
@@ -103,10 +104,8 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
   Eigen::MatrixXd Omega_ij_out((int)IW_df, K); Omega_ij_out.setZero();
   Eigen::MatrixXd lambda_out((int)IW_df, K); lambda_out.setZero();
   Eigen::MatrixXd lambda_prob((int)IW_df, K); lambda_prob.setZero();
-  Eigen::MatrixXd eta_out((int)IW_df, K); eta_out.setZero();
+  // Eigen::MatrixXd eta_out((int)IW_df, K); eta_out.setZero();
   Eigen::MatrixXd R_out(K, K); R_out.setZero();
-  
-  // Eigen::MatrixXd pi_chain(B-bn, (int)IW_df * K); pi_chain.setZero();
   
   double ta_s = 0.0, l2 = 0.0;
   
@@ -131,7 +130,8 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
   } 
   
   Eigen::VectorXd ta_out(K); ta_out.setZero();
-  Eigen::MatrixXd l1_out(B, K); l1_out.setZero();
+  // Eigen::MatrixXd l1_out(B, K); l1_out.setZero();
+  Eigen::MatrixXd z_out((int)IW_df, K); z_out.setZero();
   
   // ::::::::::::::::::::::::::::::::::::::::::::
   // start algorithm
@@ -204,6 +204,15 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
             
             alpha_l = std::sqrt(0.5 * tmp1 * tmp1 / mth + 1.0 / Eta[js][j][h]);
             beta_l = temp_1(c) * tmp1 / mth2;
+            
+            if (alpha_l > 1e+06 || beta_l > 1e+06) {
+              Rcpp::Rcout << "\n ::::::::::: !!! Warning: chain is stuck !!! :::::::::::";
+              
+              
+              int chain_stuck = 1;
+              return Rcpp::List::create(Rcpp::Named("Omega_ij") = Omega_ij_out, Rcpp::Named("Omega_jj") = Omega_jj_out, Rcpp::Named("ta") = ta_out, Rcpp::Named("lambda_ij") = lambda_out, Rcpp::Named("kappa_ij") = lambda_prob, Rcpp::Named("R") = R_out, Rcpp::Named("tau") = tau_out, Rcpp::Named("z") = z_out, Rcpp::Named("stuck") = chain_stuck);
+            }
+            
             tmp1 = rg3p_c1(alpha_l, beta_l);
             
             tmp1 = 1.0 / (tmp1 * tmp1);
@@ -241,12 +250,12 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
       alpha_t = 0.0;
       beta_t = 0.0;
       
-      // sv = std::pow(Omega[0][0][h], 2);
-      sv = 0.0;
+      sv = std::pow(Omega[0][0][h], 2);
+      // sv = 0.0;
       
       for (j = 1; j < p; j++)
       {
-        // sv += std::pow(Omega[j][j][h], 2);
+        sv += std::pow(Omega[j][j][h], 2);
         
         for (js = 0; js < j; js++)
         {
@@ -272,6 +281,13 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
       
       diag_V(h) = 1.0 / std::sqrt(sv);
       alpha_t = std::sqrt(0.5 / mu(h) * alpha_t + 1.0 / zeta(h));
+      
+      if (alpha_t > 1e+06 || beta_t / mu(h) > 1e+06) {
+        Rcpp::Rcout << "\n ::::::::::: !!! Warning: chain is stuck !!! :::::::::::";
+        
+        int chain_stuck = 1;
+        return Rcpp::List::create(Rcpp::Named("Omega_ij") = Omega_ij_out, Rcpp::Named("Omega_jj") = Omega_jj_out, Rcpp::Named("ta") = ta_out, Rcpp::Named("lambda_ij") = lambda_out, Rcpp::Named("kappa_ij") = lambda_prob, Rcpp::Named("R") = R_out, Rcpp::Named("tau") = tau_out, Rcpp::Named("z") = z_out, Rcpp::Named("stuck") = chain_stuck);
+      }
       
       tau(h) = 1.0 / std::pow(rg3p_approx(alpha_t, beta_t / mu(h), (int)IW_df), 2);
       // tau(h) = 1.0 / std::pow(rg3p(alpha_t, beta_t / mu(h), (int)IW_df), 2);
@@ -314,60 +330,52 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
       }
     }
     
+    // ::::::::::::::::::::::::::::::::::::::::::::
+    // sample z and t with cut-model
+    
     for (h = 0; h < K; h++)
     {
       ta_s = R::rbeta(hyp_ta(0), hyp_ta(1));
-      l2 = 0.0;
-
-      mth = mu(h) * tau(h);
-      mth2 = std::sqrt(tau(h)) * mu(h);
-
+      l1(h) = 0.0; l2 = 0.0;
+      
       cs = 0;
       for (j = 0; j < p-1; j++)
       {
         for (js = j+1; js < p; js++)
         {
-          c = 0;
-          for (hs = 0; hs < K; hs++)
-          {
-            if (hs != h)
-            {
-              delta_12_inv(c) = Omega[js][j][hs] / std::sqrt(tau(hs) * Lambda[js][j][hs]);
-              c += 1;
-            }
-          }
-
-          tmp1 = Omega[js][j][h];
-          alpha_l = std::sqrt(0.5 * tmp1 * tmp1 / mth + 1.0 / Eta[js][j][h]);
-          beta_l = (rtR.col(h).transpose() * delta_12_inv).value() * tmp1 / mth2;
-
-          qta2(cs) = 1 - pgamma3p1(std::sqrt((1.0 - ta_s) / ta_s), alpha_l, beta_l);
+          tmp1 = Lambda[js][j][hs];
+          qta1(cs, h) = R::pnorm(tmp1 / (1 + tmp1) - ta(h), 0.0, 1.0, true, false);
+          qta2(cs) = R::pnorm(tmp1 / (1 + tmp1) - ta_s, 0.0, 1.0, true, false);
+          
+          tmp1 = qta1(cs, h);
+          Z(cs, h) = R::rbinom(1, tmp1);
+          
           if (Z(cs, h) == 1)
           {
+            l1(h) += std::log(tmp1);
             l2 += std::log(qta2(cs));
           } else 
           {
+            l1(h) += std::log(1.0 - tmp1);
             l2 += std::log(1.0 - qta2(cs));
           }
           cs += 1;
-          
-          a_MH = l2 - l1(h);
-          if (std::log(R::runif(0, 1)) < a_MH)
-          {
-            ta(h) = ta_s;
-            l1(h) = l2;
-            qta1.col(h) = qta2;
-          }
         }
       }
-
-      for (j = 0; j < IW_df; j++) 
+      
+      a_MH = l2 + R::dbeta(ta_s, hyp_ta(0), hyp_ta(1), true) - l1(h) - R::dbeta(ta(h), hyp_ta(0), hyp_ta(1), true);
+      if (std::log(R::runif(0, 1)) < a_MH)
       {
-        Z(j, h) = R::rbinom(1, qta1(j, h));
+        ta(h) = ta_s;
+        l1(h) = l2;
+        qta1.col(h) = qta2;
       }
     }
     
-    l1_out.row(b) = l1;
+    // ::::::::::::::::::::::::::::::::::::::::::::
+    // save values
+    
+    // l1_out.row(b) = l1;
     
     if (b >= bn)
     {
@@ -387,7 +395,9 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
             Omega_ij_out(c, h) += Omega[js][j][h];
             lambda_out(c, h) += Lambda[js][j][h];
             lambda_prob(c, h) += 1.0 / (1.0 + Lambda[js][j][h]);
-            eta_out(c, h) += Eta[js][j][h];
+            // eta_out(c, h) += Eta[js][j][h];
+            z_out(c, h) += Z(c, h);
+            
             c += 1;
             cs += 1;
           }
@@ -395,26 +405,40 @@ Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rc
       }
     }
     
-    if ((ping != 0) && (b % ping == 0))
-      Rcpp::Rcout << "\n iter: " << b;
+    if ((ping != 0) && (b % ping == 0)) 
+      Rcpp::Rcout << "\n ::::: iter: " << b;
   }
+  
+  Omega_ij_out = Omega_ij_out / (b-bn);
+  Omega_jj_out = Omega_jj_out / (b-bn);
+  ta_out = ta_out / (b-bn);
+  lambda_out = lambda_out / (b-bn);
+  lambda_prob = lambda_prob / (b-bn);
+  R_out = R_out / (b-bn);
+  tau_out = tau_out / (b-bn);
+  z_out = z_out / (b-bn);
   
   // ::::::::::::::::::::::::::::::::::::::::::::
   // output
   // ::::::::::::::::::::::::::::::::::::::::::::
+  Rcpp::Rcout << "\n ::::: end ::::: ";
   
-  return Rcpp::List::create(Rcpp::Named("Omega_ij") = Omega_ij_out / (B - bn), Rcpp::Named("Omega_jj") = Omega_jj_out / (B - bn), Rcpp::Named("ta") = ta_out / (B - bn), Rcpp::Named("l1_chain") = l1_out, Rcpp::Named("lambda") = lambda_out / (B - bn), Rcpp::Named("lambda_prob") = lambda_prob / (B - bn), Rcpp::Named("eta") = eta_out / (B - bn), Rcpp::Named("R") = R_out / (B - bn), Rcpp::Named("tau") = tau_out / (B - bn));
+  int chain_stuck = 0;
+  return Rcpp::List::create(Rcpp::Named("Omega_ij") = Omega_ij_out, Rcpp::Named("Omega_jj") = Omega_jj_out, Rcpp::Named("ta") = ta_out, Rcpp::Named("lambda_ij") = lambda_out, Rcpp::Named("kappa_ij") = lambda_prob, Rcpp::Named("R") = R_out, Rcpp::Named("tau") = tau_out, Rcpp::Named("z") = z_out, Rcpp::Named("stuck") = chain_stuck);
 }
 
 
-// [[Rcpp::export]]
 
-Rcpp::List mGHS2 (const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& ping = 2500) 
+Rcpp::List mGHS_chain (const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& ping = 1000) 
 {
-  // B number of iteration
-  // bn burn-in
-  // n vector K-dim
-  // S array p x p x K
+  // INPUT
+  // B: number of iteration
+  // bn: burn-in
+  // n: K-dim vector containing sample size of each group
+  // S: K-dim list with matrix S[[k]] = t(Yk) %*% Yk
+  // p: dimensionality of the problem
+  // hyp_ta: hyperparameters a and b of cut model
+  // ping: print progress every ping iterations (default is 1000)
   
   typedef array_type::index_range range;
   
@@ -447,10 +471,7 @@ Rcpp::List mGHS2 (const int& B, const int& bn, const Eigen::VectorXd& n, const R
   Eigen::VectorXd temp_3(pm1); temp_3.setZero();
   Eigen::VectorXd s_12(pm1); s_12.setZero();
   Eigen::VectorXd sigma_12(pm1); sigma_12.setZero();
-  Eigen::VectorXd eta_12(pm1); eta_12.setZero();
   Eigen::VectorXd delta_12(pm1); delta_12.setZero();
-  Eigen::VectorXd lambda_12_par(pm1); lambda_12_par.setZero();
-  Eigen::VectorXd eta_12_par(pm1); eta_12_par.setZero();
   
   Eigen::MatrixXd Rinv(Km1, Km1); Rinv.setZero();
   Eigen::MatrixXd rtR(Km1, K); rtR.setZero();
@@ -487,16 +508,12 @@ Rcpp::List mGHS2 (const int& B, const int& bn, const Eigen::VectorXd& n, const R
   
   // output
   
-  Eigen::VectorXd tau_out(K); tau_out.setZero();
-  Eigen::MatrixXd Omega_jj_out(p, K); Omega_jj_out.setZero();
-  Eigen::MatrixXd Omega_ij_out((int)IW_df, K); Omega_ij_out.setZero();
-  Eigen::MatrixXd lambda_out((int)IW_df, K); lambda_out.setZero();
-  Eigen::MatrixXd lambda_prob((int)IW_df, K); lambda_prob.setZero();
-  Eigen::MatrixXd eta_out((int)IW_df, K); eta_out.setZero();
-  Eigen::MatrixXd R_out(K, K); R_out.setZero();
+  Eigen::MatrixXd tau_out(K, B-bn); tau_out.setZero();
+  // Eigen::MatrixXd zeta_out(K, B-bn); zeta_out.setZero();
   
-  // Eigen::MatrixXd pi_chain(B-bn, (int)IW_df * K); pi_chain.setZero();
-  
+  Eigen::MatrixXd ta_out(K, B); ta_out.setZero();
+  // Eigen::MatrixXd l1_out(K, B); l1_out.setZero();
+
   double ta_s = 0.0, l2 = 0.0;
   
   Eigen::VectorXd l1(K); l1.setZero();
@@ -519,8 +536,16 @@ Rcpp::List mGHS2 (const int& B, const int& bn, const Eigen::VectorXd& n, const R
     }
   } 
   
-  Eigen::VectorXd ta_out(K); ta_out.setZero();
-  Eigen::MatrixXd l1_out(B, K); l1_out.setZero();
+  Eigen::MatrixXd Omega_ij_out((int)IW_df, K*(B-bn)); Omega_ij_out.setZero();
+  Eigen::MatrixXd Omega_jj_out(p, K*(B-bn)); Omega_jj_out.setZero();
+  Eigen::MatrixXd Lambda_out((int)IW_df, K*(B-bn)); Lambda_out.setZero();
+  // Eigen::MatrixXd Eta_out((int)IW_df, K*(B-bn)); Eta_out.setZero();
+  Eigen::MatrixXd R_out(K, K*(B-bn)); R_out.setZero();
+  Eigen::MatrixXd z_out((int)IW_df, K*(B-bn)); z_out.setZero();
+  
+  // Eigen::MatrixXd z_out((int)IW_df, K); z_out.setZero();
+  // Eigen::MatrixXd ta_out(B-bn, K); ta_out.setZero();
+  // Eigen::MatrixXd l1_out(B, K); l1_out.setZero();
   
   // ::::::::::::::::::::::::::::::::::::::::::::
   // start algorithm
@@ -587,35 +612,33 @@ Rcpp::List mGHS2 (const int& B, const int& bn, const Eigen::VectorXd& n, const R
         {
           if (js != j) 
           {
-            eta_12(c) = Eta[js][j][h];
-            
             tmp1 = v(c);
             Omega[js][j][h] = tmp1;
             Omega[j][js][h] = tmp1;
             
-            tmp1 = -temp_3(c);
-            Sigma[js][j][h] = tmp1;
-            Sigma[j][js][h] = tmp1;
+            alpha_l = std::sqrt(0.5 * tmp1 * tmp1 / mth + 1.0 / Eta[js][j][h]);
+            beta_l = temp_1(c) * tmp1 / mth2;
             
-            c += 1;
-          }
-        }
-        
-        std::tie(lambda_12_par, eta_12_par) = lambda_pstep(v, temp_1, eta_12, mth, mth2);
-        
-        c = 0;
-        for (js = 0; js < p; js++)
-        {
-          if (js != j) 
-          {
-            tmp1 = lambda_12_par(c);
-            // tmp1 = 1.0 / (tmp1 * tmp1);
+            if (alpha_l > 1e+06 || beta_l > 1e+06) {
+              Rcpp::Rcout << "\n ::::::::::: !!! Warning: chain is stuck !!! :::::::::::";
+              
+              
+              int chain_stuck = 1;
+              return Rcpp::List::create(Rcpp::Named("Omega_ij") = Omega_ij_out, Rcpp::Named("Omega_jj") = Omega_jj_out, Rcpp::Named("ta") = ta_out, Rcpp::Named("lambda_ij") = Lambda_out, Rcpp::Named("R") = R_out, Rcpp::Named("tau") = tau_out, Rcpp::Named("z") = z_out, Rcpp::Named("stuck") = chain_stuck);
+            }
+            
+            tmp1 = rg3p_c1(alpha_l, beta_l);
+            tmp1 = 1.0 / (tmp1 * tmp1);
             Lambda[js][j][h] = tmp1;  
             Lambda[j][js][h] = tmp1;  
             
-            tmp1 = eta_12_par(c);
+            tmp1 = 1.0 / R::rgamma(1, 1.0 / (1.0 + 1.0 / tmp1));
             Eta[js][j][h] = tmp1;
             Eta[j][js][h] = tmp1;
+            
+            tmp1 = -temp_3(c);
+            Sigma[js][j][h] = tmp1;
+            Sigma[j][js][h] = tmp1;
             
             c += 1;
           }
@@ -640,12 +663,12 @@ Rcpp::List mGHS2 (const int& B, const int& bn, const Eigen::VectorXd& n, const R
       alpha_t = 0.0;
       beta_t = 0.0;
       
-      // sv = std::pow(Omega[0][0][h], 2);
-      sv = 0.0;
+      sv = std::pow(Omega[0][0][h], 2);
+      // sv = 0.0;
       
       for (j = 1; j < p; j++)
       {
-        // sv += std::pow(Omega[j][j][h], 2);
+        sv += std::pow(Omega[j][j][h], 2);
         
         for (js = 0; js < j; js++)
         {
@@ -671,6 +694,13 @@ Rcpp::List mGHS2 (const int& B, const int& bn, const Eigen::VectorXd& n, const R
       
       diag_V(h) = 1.0 / std::sqrt(sv);
       alpha_t = std::sqrt(0.5 / mu(h) * alpha_t + 1.0 / zeta(h));
+      
+      if (alpha_t > 1e+06 || beta_t / mu(h) > 1e+06) {
+        Rcpp::Rcout << "\n ::::::::::: !!! Warning: chain is stuck !!! :::::::::::";
+        
+        int chain_stuck = 1;
+        return Rcpp::List::create(Rcpp::Named("Omega_ij") = Omega_ij_out, Rcpp::Named("Omega_jj") = Omega_jj_out, Rcpp::Named("ta") = ta_out, Rcpp::Named("lambda_ij") = Lambda_out, Rcpp::Named("R") = R_out, Rcpp::Named("tau") = tau_out, Rcpp::Named("z") = z_out, Rcpp::Named("stuck") = chain_stuck);
+      }
       
       tau(h) = 1.0 / std::pow(rg3p_approx(alpha_t, beta_t / mu(h), (int)IW_df), 2);
       // tau(h) = 1.0 / std::pow(rg3p(alpha_t, beta_t / mu(h), (int)IW_df), 2);
@@ -713,97 +743,131 @@ Rcpp::List mGHS2 (const int& B, const int& bn, const Eigen::VectorXd& n, const R
       }
     }
     
+    // ::::::::::::::::::::::::::::::::::::::::::::
+    // sample z and t with cut-model
+    
     for (h = 0; h < K; h++)
     {
       ta_s = R::rbeta(hyp_ta(0), hyp_ta(1));
-      l2 = 0.0;
-      
-      mth = mu(h) * tau(h);
-      mth2 = std::sqrt(tau(h)) * mu(h);
+      l1(h) = 0.0; l2 = 0.0;
       
       cs = 0;
       for (j = 0; j < p-1; j++)
       {
         for (js = j+1; js < p; js++)
         {
-          c = 0;
-          for (hs = 0; hs < K; hs++)
-          {
-            if (hs != h)
-            {
-              delta_12_inv(c) = Omega[js][j][hs] / std::sqrt(tau(hs) * Lambda[js][j][hs]);
-              c += 1;
-            }
-          }
+          tmp1 = Lambda[js][j][hs];
+          qta1(cs, h) = R::pnorm(tmp1 / (1 + tmp1) - ta(h), 0.0, 1.0, true, false);
+          qta2(cs) = R::pnorm(tmp1 / (1 + tmp1) - ta_s, 0.0, 1.0, true, false);
           
-          tmp1 = Omega[js][j][h];
-          alpha_l = std::sqrt(0.5 * tmp1 * tmp1 / mth + 1.0 / Eta[js][j][h]);
-          beta_l = (rtR.col(h).transpose() * delta_12_inv).value() * tmp1 / mth2;
+          tmp1 = qta1(cs, h);
+          Z(cs, h) = R::rbinom(1, tmp1);
           
-          qta2(cs) = 1 - pgamma3p1(std::sqrt((1.0 - ta_s) / ta_s), alpha_l, beta_l);
           if (Z(cs, h) == 1)
           {
+            l1(h) += std::log(tmp1);
             l2 += std::log(qta2(cs));
           } else 
           {
+            l1(h) += std::log(1.0 - tmp1);
             l2 += std::log(1.0 - qta2(cs));
           }
           cs += 1;
-          
-          a_MH = l2 - l1(h);
-          if (std::log(R::runif(0, 1)) < a_MH)
-          {
-            ta(h) = ta_s;
-            l1(h) = l2;
-            qta1.col(h) = qta2;
-          }
         }
       }
       
-      for (j = 0; j < IW_df; j++) 
+      a_MH = l2 + R::dbeta(ta_s, hyp_ta(0), hyp_ta(1), true) - l1(h) - R::dbeta(ta(h), hyp_ta(0), hyp_ta(1), true);
+      if (std::log(R::runif(0, 1)) < a_MH)
       {
-        Z(j, h) = R::rbinom(1, qta1(j, h));
+        ta(h) = ta_s;
+        l1(h) = l2;
+        qta1.col(h) = qta2;
       }
     }
     
-    l1_out.row(b) = l1;
+    // ::::::::::::::::::::::::::::::::::::::::::::
+    // save values
+    
+    
+    // l1_out.col(b) = l1;
     
     if (b >= bn)
     {
-      tau_out += tau;
-      R_out += R;
-      ta_out += ta;
+      tau_out.col(b-bn) = tau;
+      // zeta_out.col(b-bn) = zeta;
+      ta_out.col(b-bn) = ta;
       
-      cs = 0;
+      // cs = 0;
       for (h = 0; h < K; h++)
       {
+        R_out(h, (b-bn)*K + h) = R(h, h);
+        for (int hs = h+1; hs < K; hs++)
+        {
+          R_out(h, (b-bn)*K + hs) = R(h, hs);
+          R_out(hs, (b-bn)*K + h) = R(h, hs);
+        }
+        
         c = 0;
         for (j = 0; j < p; j++)
         {
-          Omega_jj_out(j, h) += Omega[j][j][h];
+          Omega_jj_out(j, (b-bn)*K + h) = Omega[j][j][h];
+          
           for (js = j+1; js < p; js++)
           {
-            Omega_ij_out(c, h) += Omega[js][j][h];
-            lambda_out(c, h) += Lambda[js][j][h];
-            lambda_prob(c, h) += 1.0 / (1.0 + Lambda[js][j][h]);
-            eta_out(c, h) += Eta[js][j][h];
+            Omega_ij_out(c, (b-bn)*K + h) = Omega[js][j][h];
+            Lambda_out(c, (b-bn)*K + h) = Lambda[js][j][h];
+            // Eta_out(c, (b-bn)*K + h) = Eta[js][j][h];
+            z_out(c, (b-bn)*K + h) = Z(c, h);
+            
             c += 1;
-            cs += 1;
           }
         }
       }
     }
     
-    if ((ping != 0) && (b % ping == 0))
-      Rcpp::Rcout << "\n iter: " << b;
+    
+    if ((ping != 0) && (b % ping == 0)) 
+      Rcpp::Rcout << "\n ::::: iter: " << b;
   }
   
   // ::::::::::::::::::::::::::::::::::::::::::::
   // output
   // ::::::::::::::::::::::::::::::::::::::::::::
+  Rcpp::Rcout << "\n ::::: end ::::: ";
   
-  return Rcpp::List::create(Rcpp::Named("Omega_ij") = Omega_ij_out / (B - bn), Rcpp::Named("Omega_jj") = Omega_jj_out / (B - bn), Rcpp::Named("ta") = ta_out / (B - bn), Rcpp::Named("l1_chain") = l1_out, Rcpp::Named("lambda") = lambda_out / (B - bn), Rcpp::Named("lambda_prob") = lambda_prob / (B - bn), Rcpp::Named("eta") = eta_out / (B - bn), Rcpp::Named("R") = R_out / (B - bn), Rcpp::Named("tau") = tau_out / (B - bn));
+  int chain_stuck = 0;
+  return Rcpp::List::create(Rcpp::Named("Omega_ij") = Omega_ij_out, Rcpp::Named("Omega_jj") = Omega_jj_out, Rcpp::Named("ta") = ta_out, Rcpp::Named("lambda_ij") = Lambda_out, Rcpp::Named("R") = R_out, Rcpp::Named("tau") = tau_out, Rcpp::Named("z") = z_out, Rcpp::Named("stuck") = chain_stuck);
 }
 
+
+// [[Rcpp::export]]
+
+Rcpp::List mGHS (const int& B, const int& bn, const Eigen::VectorXd& n, const Rcpp::List& S, const int& p, const Eigen::VectorXd hyp_ta, const int& chain = 0, const int& ping = 1000) 
+{
+  // INPUT
+  // B: number of iteration
+  // bn: burn-in
+  // n: K-dim vector containing sample size of each group
+  // S: K-dim list with matrix S[[k]] = t(Yk) %*% Yk
+  // p: dimensionality of the problem
+  // hyp_ta: hyperparameters a and b of cut model
+  // chain: integer, chain = 0 returns the posterior mean of each parameter (default), 
+  //                 chain = 1 returns the whole post burn-in chains
+  // ping: print progress every ping iterations (default is 1000)
+  
+  Rcpp::List out;
+  
+  if (chain == 0) 
+  {
+    out = mGHS_mean (B, bn, n, S, p, hyp_ta, ping);
+  }
+  else
+  {
+    out = mGHS_chain (B, bn, n, S, p, hyp_ta, ping);
+  }
+  
+  return out;
+}
+  
 // end file
 
